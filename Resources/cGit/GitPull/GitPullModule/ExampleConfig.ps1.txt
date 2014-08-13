@@ -1,0 +1,17 @@
+
+Configuration myGitConfig
+{
+   # A Configuration block can have zero or more Node blocks
+   Import-DscResource -Module cGit
+
+   Node "localhost"
+   {
+      cGitPull pullRepo
+      {
+        Ensure = 'Present'
+        RepositoryLocal = 'c:\temp\gitdsc'
+        RepositoryRemote = 'https://github.com/lawrencegripper/FluentMongoIntegrationTesting'
+      }
+      
+   }
+} 

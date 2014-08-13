@@ -34,6 +34,7 @@
     <Compile Include="cGit.psd1" />
     <Compile Include="DSCResources\cGitPull\cGitPull.psm1" />
     <Compile Include="DSCResources\cGitPull\cGitPull.schema.mof" />
+    <Compile Include="ExampleConfig.ps1.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />
