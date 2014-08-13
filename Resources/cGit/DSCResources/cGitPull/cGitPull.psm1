@@ -4,19 +4,24 @@ function Get-TargetResource
 	[OutputType([System.Collections.Hashtable])]
 	param
 	(
-		[ValidateSet("Present", "Absent")]
-		[System.String]
-		$Ensure = "Present",
-
 		[parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [Alias('Name')]
+        [string]
+        $DisplayName,
+
 		[ValidateNotNullOrEmpty()]
 		[System.String]
 		$RepositoryLocal,
 
-		[parameter(Mandatory = $true)]
 		[ValidateNotNullOrEmpty()]
 		[System.String]
-		$RepositoryRemote
+		$RepositoryRemote,
+
+		[ValidateSet("Present", "Absent")]
+		[System.String]
+		$Ensure = "Present"
+
 	)
 
 	#Needs to return a hashtable that returns the current
@@ -24,7 +29,7 @@ function Get-TargetResource
 	$Configuration = @{
 		RepositoryRemote = $RepositoryRemote
 		RepositoryLocal = $RepositoryLocal
-	
+		Name = $DisplayName
 	}
 
 	if (-not (IsGitInstalled) -and -not (Test-Path $RepositoryLocal) -and -not (isLocalGitUpToDate $repoUrl))
@@ -41,23 +46,27 @@ function Get-TargetResource
 }
 
 function Set-TargetResource
-{    
-	[CmdletBinding()]
+{
+	[CmdletBinding()]    
 	param
 	(
-		[ValidateSet("Present", "Absent")]
-		[System.String]
-		$Ensure = "Present",
-
 		[parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [Alias('Name')]
+        [string]
+        $DisplayName,
+
 		[ValidateNotNullOrEmpty()]
 		[System.String]
 		$RepositoryLocal,
 
-		[parameter(Mandatory = $true)]
 		[ValidateNotNullOrEmpty()]
 		[System.String]
-		$RepositoryRemote
+		$RepositoryRemote,
+
+		[ValidateSet("Present", "Absent")]
+		[System.String]
+		$Ensure = "Present"
 	)
 
 	GitCreatePullUpdate $ReposityoryRemote $RepositoryLocal
@@ -69,19 +78,23 @@ function Test-TargetResource
 	[OutputType([System.Boolean])]
 	param
 	(
-		[ValidateSet("Present", "Absent")]
-		[System.String]
-		$Ensure = "Present",
-
 		[parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [Alias('Name')]
+        [string]
+        $DisplayName,
+
 		[ValidateNotNullOrEmpty()]
 		[System.String]
 		$RepositoryLocal,
 
-		[parameter(Mandatory = $true)]
 		[ValidateNotNullOrEmpty()]
 		[System.String]
-		$RepositoryRemote
+		$RepositoryRemote,
+
+		[ValidateSet("Present", "Absent")]
+		[System.String]
+		$Ensure = "Present"
 	)
 
 	if (-not (IsGitInstalled))
@@ -216,4 +229,4 @@ function IsLocalGitUpToDate
 	}
 }
 
-Export-ModuleMember -Function *-TargetResource
+Export-ModuleMember -Function *-TargetResource -
