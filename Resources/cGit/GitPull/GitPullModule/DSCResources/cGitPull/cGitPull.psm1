@@ -1,10 +1,7 @@
-
-<#
-.Synopsys
-The Get-TargetResource cmdlet.
-#>
 function Get-TargetResource
 {
+	[CmdletBinding()]
+	[OutputType([System.Collections.Hashtable])]
 	param
 	(
 		[ValidateSet("Present", "Absent")]
@@ -43,12 +40,9 @@ function Get-TargetResource
 	}
 }
 
-<#
-.Synopsys
-The Set-TargetResource cmdlet.
-#>
 function Set-TargetResource
 {    
+	[CmdletBinding()]
 	param
 	(
 		[ValidateSet("Present", "Absent")]
@@ -69,12 +63,10 @@ function Set-TargetResource
 	GitCreatePullUpdate $ReposityoryRemote $RepositoryLocal
 }
 
-<#
-.Synopsys
-The Test-TargetResource cmdlet is used to validate if the resource is in a state as expected in the instance document.
-#>
 function Test-TargetResource
 {
+	[CmdletBinding()]
+	[OutputType([System.Boolean])]
 	param
 	(
 		[ValidateSet("Present", "Absent")]
@@ -224,10 +216,4 @@ function IsLocalGitUpToDate
 	}
 }
 
-#for testing
-#if (-Not (IsGitInstalled))
-#{
-#	InstallGit
-#}
-#
-#GitCreatePullUpdate
+Export-ModuleMember -Function *-TargetResource

@@ -26,11 +26,14 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <ItemGroup />
   <ItemGroup>
-    <Compile Include="gitPull.psd1" />
-    <Compile Include="gitPull.psm1" />
-    <Compile Include="gitPull.scheme.mof" />
+    <Folder Include="DSCResources\" />
+    <Folder Include="DSCResources\cGitPull\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="cGit.psd1" />
+    <Compile Include="DSCResources\cGitPull\cGitPull.psm1" />
+    <Compile Include="DSCResources\cGitPull\cGitPull.schema.mof" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />

@@ -1,5 +1,5 @@
-[ClassVersion("1.0.0"), FriendlyName("GitPull")] 
-class gitPull : OMI_BaseResource
+[ClassVersion("1.0.0"), FriendlyName("cGitPull")] 
+class cGitPull : OMI_BaseResource
 {
   [Key] string RepositoryLocal;
   [Key] string RepositoryRemote;
