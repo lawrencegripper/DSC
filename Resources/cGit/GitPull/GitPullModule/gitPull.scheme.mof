@@ -1,0 +1,8 @@
+[ClassVersion("1.0.0"), FriendlyName("gitPull")] 
+class gitPull : OMI_BaseResource
+{
+  [Key] string Name;
+  [write] string Version;
+  [write] string AssemblyFile;
+  [write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;  
+};
