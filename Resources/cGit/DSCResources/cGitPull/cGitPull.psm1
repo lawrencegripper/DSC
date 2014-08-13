@@ -31,7 +31,7 @@ function Get-TargetResource
         Name = $Name
     }
 
-    if (-not (IsGitInstalled) -and -not (Test-Path $RepositoryLocal) -and -not (isLocalGitUpToDate $repoUrl))
+    if (-not (IsGitInstalled) -and -not (Test-Path $RepositoryLocal) -and -not (isLocalGitUpToDate $RepositoryLocal))
     {
         $Configuration.Ensure = 'Absent'
         Return $Configuration
@@ -66,8 +66,12 @@ function Set-TargetResource
         [System.String]
         $Ensure = "Present"
     )
-
-    GitCreatePullUpdate $ReposityoryRemote $RepositoryLocal
+    
+    if (-not (IsGitInstalled))
+    {
+        InstallGit
+    }
+    GitCreatePullUpdate $RepositoryRemote $RepositoryLocal
 }
 
 function Test-TargetResource
@@ -104,10 +108,12 @@ function Test-TargetResource
         Return $false
     }
 
-    if (-Not (isLocalGitUpToDate $repoUrl))
+    if (-Not (IsLocalGitUpToDate $RepositoryLocal))
     {
         Return $false
     }
+
+    Return $true
 }
 
 
@@ -122,6 +128,7 @@ function InstallGit
 
 function IsGitInstalled
 {
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
     Try
     {
         Exec({git help})
@@ -129,7 +136,7 @@ function IsGitInstalled
     }
     Catch
     {
-        Write-Error "Git not installed"
+        #Write-Host "Git not installed"
         return $false
     }
     
@@ -144,29 +151,6 @@ function GitCreatePullUpdate
         ) 
     $repoUrl = $repoLocationRemote
     $repoLocal = $repoLocationLocal
-    Try
-    {
-        Set-Location $repoLocal
-        Exec({git status })
-        if (-Not (isLocalGitUpToDate($repoUrl)))
-        {
-            Exec({git pull})
-        }
-    }
-    Catch
-    {
-        Write-Host "Folder isn't a repository, kick off clone command"
-        gitClone $repoUrl $repoLocal
-    }
-}
-
-function GitClone
-{
-    param(
-        [Parameter(Position=0,Mandatory=1)][string]$repoLocationRemote, 
-        [Parameter(Position=1,Mandatory=1)][string]$repoLocationLocal
-    ) 
-
     if (Test-Path $repoLocationLocal)
     {
         $directoryInfo = Get-ChildItem $repoLocationLocal | Measure-Object
@@ -176,6 +160,35 @@ function GitClone
             throw "Directory must be empty for git to create repository"
         }
     }
+    else
+    {
+        New-Item -ItemType directory -Path $repoLocal
+    }
+
+    Set-Location $repoLocal
+    $output = ExecGitCommand status
+    if ($output -contains '*Not a git repository*')
+    {
+        gitClone $repoUrl $repoLocal
+    }
+    else
+    {
+        if (-Not (isLocalGitUpToDate($repoLocal)))
+        {
+            ExecGitCommand pull
+        }
+    }
+
+}
+
+function GitClone
+{
+    param(
+        [Parameter(Position=0,Mandatory=1)][string]$repoLocationRemote, 
+        [Parameter(Position=1,Mandatory=1)][string]$repoLocationLocal
+    ) 
+
+
 
     $psi = New-object System.Diagnostics.ProcessStartInfo 
     $psi.CreateNoWindow = $true 
@@ -191,7 +204,7 @@ function GitClone
     $output = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
     
 
-    Write-Host $output
+    #Write-Host $output
 
 }
 
@@ -208,13 +221,36 @@ function Exec
     }
 }
 
+function ExecGitCommand
+{
+    param(
+        [Parameter(Position=1,Mandatory=0)][string]$args
+    )
+    $psi = New-object System.Diagnostics.ProcessStartInfo 
+    $psi.CreateNoWindow = $true 
+    $psi.UseShellExecute = $false 
+    $psi.RedirectStandardOutput = $true 
+    $psi.RedirectStandardError = $true 
+    $psi.FileName = 'git' 
+    $psi.Arguments = "clone "+ $repoLocationRemote +" "+ $repoLocationLocal 
+    $process = New-Object System.Diagnostics.Process 
+    $process.StartInfo = $psi
+    $process.Start() | Out-Null
+    $process.WaitForExit()
+    $output = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
+    return $output
+}
+
 function IsLocalGitUpToDate
 {
     param(
         [Parameter(Position=0,Mandatory=1)][string]$repoLocation
     ) 
-    $local = git rev-parse HEAD | out-string
-    $remote = git rev-parse origin/master | out-string
+
+    Set-Location $repoLocation
+
+    $local = ExecGitCommand 'rev-parse HEAD'
+    $remote = ExecGitCommand 'rev-parse origin/master'
 
     if ($local -eq $remote)
     {
@@ -226,4 +262,5 @@ function IsLocalGitUpToDate
     }
 }
 
-Export-ModuleMember -Function *-TargetResource -
+
+Export-ModuleMember -Function *-TargetResource
