@@ -1,4 +1,114 @@
 
+<#
+.Synopsys
+The Get-TargetResource cmdlet.
+#>
+function Get-TargetResource
+{
+	param
+	(
+		[ValidateSet("Present", "Absent")]
+		[System.String]
+		$Ensure = "Present",
+
+		[parameter(Mandatory = $true)]
+		[ValidateNotNullOrEmpty()]
+		[System.String]
+		$RepositoryLocal,
+
+		[parameter(Mandatory = $true)]
+		[ValidateNotNullOrEmpty()]
+		[System.String]
+		$RepositoryRemote
+	)
+
+	#Needs to return a hashtable that returns the current
+	#status of the configuration component
+	$Configuration = @{
+		RepositoryRemote = $RepositoryRemote
+		RepositoryLocal = $RepositoryLocal
+	
+	}
+
+	if (-not (IsGitInstalled) -and -not (Test-Path $RepositoryLocal) -and -not (isLocalGitUpToDate $repoUrl))
+	{
+		$Configuration.Ensure = 'Absent'
+		Return $Configuration
+	}
+	else
+	{
+		$Configuration.Ensure = 'Present'
+		Return $Configuration
+
+	}
+}
+
+<#
+.Synopsys
+The Set-TargetResource cmdlet.
+#>
+function Set-TargetResource
+{    
+	param
+	(
+		[ValidateSet("Present", "Absent")]
+		[System.String]
+		$Ensure = "Present",
+
+		[parameter(Mandatory = $true)]
+		[ValidateNotNullOrEmpty()]
+		[System.String]
+		$RepositoryLocal,
+
+		[parameter(Mandatory = $true)]
+		[ValidateNotNullOrEmpty()]
+		[System.String]
+		$RepositoryRemote
+	)
+
+	GitCreatePullUpdate $ReposityoryRemote $RepositoryLocal
+}
+
+<#
+.Synopsys
+The Test-TargetResource cmdlet is used to validate if the resource is in a state as expected in the instance document.
+#>
+function Test-TargetResource
+{
+	param
+	(
+		[ValidateSet("Present", "Absent")]
+		[System.String]
+		$Ensure = "Present",
+
+		[parameter(Mandatory = $true)]
+		[ValidateNotNullOrEmpty()]
+		[System.String]
+		$RepositoryLocal,
+
+		[parameter(Mandatory = $true)]
+		[ValidateNotNullOrEmpty()]
+		[System.String]
+		$RepositoryRemote
+	)
+
+	if (-not (IsGitInstalled))
+	{
+		Return $false
+	}
+
+	if (-not (Test-Path $RepositoryLocal))
+	{
+		Return $false
+	}
+
+	if (-Not (isLocalGitUpToDate $repoUrl))
+	{
+		Return $false
+	}
+}
+
+
 function InstallGit
 {
 	Set-ExecutionPolicy Unrestricted
@@ -26,18 +136,17 @@ function IsGitInstalled
 
 function GitCreatePullUpdate
 {
-	$repoUrl = "https://github.com/lawrencegripper/FluentMongoIntegrationTesting"
-	$repoLocal = "c:\temp\git"
+	param(
+			[Parameter(Position=0,Mandatory=1)][string]$repoLocationRemote, 
+			[Parameter(Position=1,Mandatory=1)][string]$repoLocationLocal
+		) 
+	$repoUrl = $repoLocationRemote
+	$repoLocal = $repoLocationLocal
 	Try
 	{
-		#$sb = {
-		#	param ($repoLocationLocal)
-		#	git status $repoLocationLocal
-		#  }
-	    #Exec(& $sb $repoLocal)
 		Set-Location $repoLocal
 		Exec({git status })
-		if (-Not (isLocalUpToDate($repoUrl)))
+		if (-Not (isLocalGitUpToDate($repoUrl)))
 		{
 			Exec({git pull})
 		}
@@ -56,7 +165,7 @@ function GitClone
 		[Parameter(Position=1,Mandatory=1)][string]$repoLocationLocal
 	) 
 
-    if (Test-Path $repoLocationLocal)
+	if (Test-Path $repoLocationLocal)
 	{
 		$directoryInfo = Get-ChildItem $repoLocationLocal | Measure-Object
 
@@ -77,17 +186,11 @@ function GitClone
 	$process.StartInfo = $psi
 	$process.Start() | Out-Null
 	$process.WaitForExit()
-	$output = $process.StandardOutput.ReadToEnd()
+	$output = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
 	
-	#$result = git clone $repoLocationRemote $repoLocationLocal | Out-String 
 
 	Write-Host $output
 
-	
-	#$sb = {
-	#		param ($repoLocationRemote, $repoLocationLocal)
-	#	  }
-	# Exec(& $sb $repoLocationRemote $repoLocationLocal)
 }
 
 function Exec
@@ -103,7 +206,7 @@ function Exec
 	}
 }
 
-function IsLocalUpToDate
+function IsLocalGitUpToDate
 {
 	param(
 		[Parameter(Position=0,Mandatory=1)][string]$repoLocation
@@ -121,10 +224,10 @@ function IsLocalUpToDate
 	}
 }
 
-
-if (-Not (IsGitInstalled))
-{
-	InstallGit
-}
-
-GitCreatePullUpdate
+#for testing
+#if (-Not (IsGitInstalled))
+#{
+#	InstallGit
+#}
+#
+#GitCreatePullUpdate
