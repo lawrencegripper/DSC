@@ -7,7 +7,7 @@ function Get-TargetResource
         [parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        $PackageName,
+        $Name,
 
         [ValidateSet("Present", "Absent")]
         [System.String]
@@ -21,10 +21,10 @@ function Get-TargetResource
     #Needs to return a hashtable that returns the current
     #status of the configuration component
     $Configuration = @{
-        PackageName = $PackageName
+        Name = $Name
     }
 
-    if (-not (IsPackageInstalled $PackageName))
+    if (-not (IsPackageInstalled $Name))
     {
         $Configuration.Ensure = 'Absent'
         Return $Configuration
@@ -45,7 +45,7 @@ function Set-TargetResource
         [parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        $PackageName,
+        $Name,
 
         [ValidateSet("Present", "Absent")]
         [System.String]
@@ -53,9 +53,9 @@ function Set-TargetResource
     )
     Write-Verbose "[CHOCOINSTALL] Start Set-TargetResource"
     
-    if (-not (IsPackageInstalled $PackageName))
+    if (-not (IsPackageInstalled $Name))
     {
-        InstallPackage $PackageName
+        InstallPackage $Name
     }
 }
 
@@ -68,7 +68,7 @@ function Test-TargetResource
         [parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        $PackageName,
+        $Name,
 
         [ValidateSet("Present", "Absent")]
         [System.String]
@@ -77,7 +77,7 @@ function Test-TargetResource
 
     Write-Verbose "[CHOCOINSTALL] Start Test-TargetResource"
 
-    if (-not (IsPackageInstalled))
+    if (-not (IsPackageInstalled $Name))
     {
         Return $false
     }
@@ -89,15 +89,16 @@ function Test-TargetResource
 function InstallPackage
 {
     param(
-            [Parameter(Position=0,Mandatory=1)][string]$packageName
+            [Parameter(Position=0,Mandatory=1)][string]$pName
         ) 
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
 
-    Write-Verbose "[ChocoInstall] Start InstallPackage $packageName"
+    Write-Verbose "[ChocoInstall] Start InstallPackage $pName"
 
     Set-ExecutionPolicy Unrestricted
     iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
     
-    choco install $packageName
+    choco install $pName
     
     #refresh path varaible in powershell, as choco doesn't, to pull in git
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
@@ -106,11 +107,14 @@ function InstallPackage
 function IsPackageInstalled
 {
     param(
-            [Parameter(Position=0,Mandatory=1)][string]$packageName
+            [Parameter(Position=0,Mandatory=1)][string]$pName
         ) 
-    Write-Verbose "[ChocoInstall] Start IsPackageInstalled $packageName"
+    Write-Verbose "[ChocoInstall] Start IsPackageInstalled $pName"
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
+    
+    Write-Verbose "[ChocoInstall] Start IsPackageInstalled $env:path"
 
-    $installedPackages = choco list -lo | Where-object { $_.Contains($packageName) }
+    $installedPackages = choco list -lo | Where-object { $_.Contains($pName) }
 
     if ($installedPackages.Count -eq 1)
     {
@@ -119,7 +123,7 @@ function IsPackageInstalled
 
     return $false
 
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
+    
 }
 
 

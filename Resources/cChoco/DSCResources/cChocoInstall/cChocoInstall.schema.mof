@@ -1,6 +1,6 @@
 [ClassVersion("1.0.0"), FriendlyName("cChocoInstall")] 
 class cChocoInstall : OMI_BaseResource
 {
-  [Key] string PackageName;
+  [Key] string Name;
   [write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;  
 };
