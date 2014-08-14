@@ -34,7 +34,7 @@ function Get-TargetResource
         Name = $Name
     }
 
-    if (-not (IsGitInstalled) -and -not (Test-Path $RepositoryLocal) -and -not (isLocalGitUpToDate $RepositoryLocal))
+    if (-not (IsGitInstalled) -or -not (Test-Path $RepositoryLocal) -or -not (isLocalGitUpToDate $RepositoryLocal))
     {
         $Configuration.Ensure = 'Absent'
         Return $Configuration
