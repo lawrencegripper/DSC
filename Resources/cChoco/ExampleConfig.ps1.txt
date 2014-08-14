@@ -1,0 +1,24 @@
+Configuration myGitConfig
+{
+   Import-DscResource -Module cGit  
+   Node "localhost"
+   {
+      LocalConfigurationManager
+      {
+          ConfigurationMode = "ApplyAndAutoCorrect"
+          ConfigurationModeFrequencyMins = 30 #must be a multiple of the RefreshFrequency and how often configuration is checked
+      }
+      cGitPull pullRepo
+      {
+        Name = 'test'
+        RepositoryLocal = "c:\temp\gitdsc\"
+        RepositoryRemote = 'https://github.com/lawrencegripper/FluentMongoIntegrationTesting'
+        Ensure = 'Present'
+      }
+      
+   }
+} 
+
+mygitconfig
+
+Start-DscConfiguration .\myGitConfig -wait -Verbose
