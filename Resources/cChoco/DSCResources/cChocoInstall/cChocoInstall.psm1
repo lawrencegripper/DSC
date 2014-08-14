@@ -124,7 +124,7 @@ function IsPackageInstalled
 
     $installedPackages = choco list -lo | Where-object { $_.Contains($pName) }
 
-    if ($installedPackages.Count -gt 1)
+    if ($installedPackages.Count -gt 0)
     {
         return $true
     }
