@@ -1,8 +1,6 @@
-[ClassVersion("1.0.0"), FriendlyName("cGitPull")] 
-class cGitPull : OMI_BaseResource
+[ClassVersion("1.0.0"), FriendlyName("cChocoInstall")] 
+class cChocoInstall : OMI_BaseResource
 {
-  [Key] String Name;
-  [write] string RepositoryLocal;
-  [write] string RepositoryRemote;
+  [Key] string PackageName;
   [write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;  
 };
