@@ -13,7 +13,7 @@ Configuration myChocoConfig
       {
         
         Ensure = "Present"
-        Name = "installGit"
+        Name = "git.install"
       }
       cGitPull pullRepo
       {
