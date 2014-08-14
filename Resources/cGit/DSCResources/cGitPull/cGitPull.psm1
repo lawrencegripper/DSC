@@ -73,7 +73,7 @@ function Set-TargetResource
     
     if (-not (IsGitInstalled))
     {
-        InstallGit
+        throw "Git isn't installed"
     }
     GitCreatePullUpdate $RepositoryRemote $RepositoryLocal
 }
@@ -125,18 +125,6 @@ function Test-TargetResource
     }
 
     Return $true
-}
-
-
-function InstallGit
-{
-    Write-Verbose "[GITPULL] Start InstallGit"
-
-    Set-ExecutionPolicy Unrestricted
-    iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
-    choco install git
-    #refresh path varaible in powershell, as choco doesn't, to pull in git
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
 }
 
 function IsGitInstalled
