@@ -77,6 +77,11 @@ function Test-TargetResource
 
     Write-Verbose "[CHOCOINSTALL] Start Test-TargetResource"
 
+    if (-not DoesCommandExist choco)
+    {
+        return $false
+    }
+
     if (-not (IsPackageInstalled $Name))
     {
         Return $false
@@ -90,29 +95,16 @@ function InstallPackage
 {
     param(
             [Parameter(Position=0,Mandatory=1)][string]$pName
-        ) 
+    ) 
 
-        #$job = start-job {
-            $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine')
+    $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine')
 
-            Write-Verbose '[ChocoInstall] Start InstallChoco'
+    Write-Verbose '[ChocoInstall] Start InstallChoco'
+    InstallChoco
+    Write-Verbose '[ChocoInstall] Finish InstallChoco'
 
-            iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1')) 
-        #}
-
-
-        # Wait for it all to complete
-        #While (Get-Job -State "Running")
-        #{
-        #  Start-Sleep 10
-        #}
+    $packageInstallOuput = choco install $pName
     
-        #$chocoInstallOutput = Receive-Job -Job $job
-
-        $packageInstallOuput = choco install $pName
-    
-
-    Write-Verbose "[ChocoInstall] choco output $chocoInstallOutput"
     Write-Verbose "[ChocoInstall] package output $packageInstallOuput"
 
     #refresh path varaible in powershell, as choco doesn"t, to pull in git
@@ -170,6 +162,29 @@ function ExecPowerShellScript
 
     return $output
 }
+
+function DoesCommandExist
+{
+    Param ($command)
+
+    $oldPreference = $ErrorActionPreference
+    $ErrorActionPreference = 'stop'
+
+    try 
+    {
+        if(Get-Command $command)
+        {
+            return $true
+        }
+    }
+    Catch 
+    {
+        return $false
+    }
+    Finally {
+        $ErrorActionPreference=$oldPreference
+    }
+} 
 
 
 ##region - chocolately installer work arounds. Main issue is use of write-host
@@ -246,7 +261,7 @@ function InstallChoco
     
     # unzip the package
     Write-verbose "Extracting $file to $tempDir..."
-    Start-Process "$7zaExe" -ArgumentList "x -o`"$tempDir`" -y `"$file`"" -Wait -NoNewWindow
+    Start-Process "$7zaExe" -ArgumentList "x -o`"$tempDir`" -y `"$file`"" -Wait
     #$shellApplication = new-object -com shell.application 
     #$zipPackage = $shellApplication.NameSpace($file) 
     #$destinationFolder = $shellApplication.NameSpace($tempDir) 
@@ -258,6 +273,7 @@ function InstallChoco
     $chocInstallPS1 = Join-Path $toolsFolder "chocolateyInstall.ps1"
     
     $installOutput = ExecPowerShellScript $chocInstallPS1
+    
     Write-verbose $installOutput
 
     
