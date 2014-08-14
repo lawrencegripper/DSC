@@ -119,7 +119,7 @@ function Test-TargetResource
         Return $false
     }
 
-	if (-Not (IsLocalGitUpToDate $RepositoryLocal))
+    if (-Not (IsLocalGitUpToDate $RepositoryLocal))
     {
         Return $false
     }
@@ -176,17 +176,17 @@ function GitCreatePullUpdate
     
     if (-not (IsAGitRepository $repoLocal))
     {
-		Write-Verbose "[GITPULL] Not a repo, initiating clone"
+        Write-Verbose "[GITPULL] Not a repo, initiating clone"
         $cloneOutput = gitClone $repoUrl $repoLocal
-		Write-Verbose "[GITPULL] $cloneOutput"
+        Write-Verbose "[GITPULL] $cloneOutput"
     }
     else
     {
         if (-Not (isLocalGitUpToDate($repoLocal)))
         {
-			Write-Verbose "[GITPULL] Not up to date, initiating pull"
+            Write-Verbose "[GITPULL] Not up to date, initiating pull"
             $pullOutput = ExecGitCommand "pull"
-			Write-Verbose "[GITPULL] $pullOutput"
+            Write-Verbose "[GITPULL] $pullOutput"
         }
     }
 
@@ -201,7 +201,7 @@ function GitClone
 
     Write-Verbose "[GITPULL] Start Clone"
 
-	$command = "clone "+ $repoLocationRemote +" "+ $repoLocationLocal + " -v" 
+    $command = "clone "+ $repoLocationRemote +" "+ $repoLocationLocal + " -v" 
 
     $output = ExecGitCommand $command
     
@@ -230,8 +230,8 @@ function ExecGitCommand
         [Parameter(Position=1,Mandatory=0)][string]$args
     )
 
-	$location = Get-Location
-	Write-Verbose "[GITPULL] Exec Git Command Prep Setting Current Location: $location"
+    $location = Get-Location
+    Write-Verbose "[GITPULL] Exec Git Command Prep Setting Current Location: $location"
 
     $psi = New-object System.Diagnostics.ProcessStartInfo 
     $psi.CreateNoWindow = $true 
@@ -239,7 +239,7 @@ function ExecGitCommand
     $psi.RedirectStandardOutput = $true 
     $psi.RedirectStandardError = $true 
     $psi.FileName = "git" 
-	$psi.WorkingDirectory = $location.ToString()
+    $psi.WorkingDirectory = $location.ToString()
     $psi.Arguments = $args
     $process = New-Object System.Diagnostics.Process 
     $process.StartInfo = $psi
@@ -247,32 +247,32 @@ function ExecGitCommand
     $process.WaitForExit()
     $output = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
 
-	Write-Verbose "[GITPULL] Exec Git Command - $args"
+    Write-Verbose "[GITPULL] Exec Git Command - $args"
 
     return $output
 }
 
 function IsAGitRepository
 {
-	param(
+    param(
         [Parameter(Position=0,Mandatory=1)][string]$repoLocation
     ) 
 
-	Write-Verbose "[GITPULL] Start IsAGitRepository $repoLocation"
+    Write-Verbose "[GITPULL] Start IsAGitRepository $repoLocation"
 
-	Set-Location $repoLocation
-	$output = ExecGitCommand "status"
+    Set-Location $repoLocation
+    $output = ExecGitCommand "status"
     if ($output.Contains("fatal"))
     {
-		Write-Verbose "[GITPULL] false $output"
-		Return $false
-	}
-	else
-	{
-		Write-Verbose "[GITPULL] true $output"
+        Write-Verbose "[GITPULL] false $output"
+        Return $false
+    }
+    else
+    {
+        Write-Verbose "[GITPULL] true $output"
 
-		Return $true
-	}
+        Return $true
+    }
 
 }
 
@@ -283,11 +283,11 @@ function IsLocalGitUpToDate
     ) 
     Write-Verbose "[GITPULL] Start IsLocalGitUpToDate $repoLK"
     
-	Set-Location $repoLocation
+    Set-Location $repoLocation
 
-	$update = ExecGitCommand "fetch origin"
+    $update = ExecGitCommand "fetch origin"
 
-	Write-Verbose "[GITPULL] Fetch Origin $update"
+    Write-Verbose "[GITPULL] Fetch Origin $update"
 
     $local = ExecGitCommand "rev-parse HEAD"
     $remote = ExecGitCommand "rev-parse origin/master"
