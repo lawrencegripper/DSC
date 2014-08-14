@@ -23,6 +23,9 @@ function Get-TargetResource
 
     )
 
+    Write-Verbose "[GITPULL] Start Get-TargetResource"
+
+
     #Needs to return a hashtable that returns the current
     #status of the configuration component
     $Configuration = @{
@@ -66,6 +69,7 @@ function Set-TargetResource
         [System.String]
         $Ensure = "Present"
     )
+    Write-Verbose "[GITPULL] Start Set-TargetResource"
     
     if (-not (IsGitInstalled))
     {
@@ -98,6 +102,8 @@ function Test-TargetResource
         $Ensure = "Present"
     )
 
+    Write-Verbose "[GITPULL] Start Test-TargetResource"
+
     if (-not (IsGitInstalled))
     {
         Return $false
@@ -108,7 +114,12 @@ function Test-TargetResource
         Return $false
     }
 
-    if (-Not (IsLocalGitUpToDate $RepositoryLocal))
+    if (-Not (IsAGitRepository $RepositoryLocal))
+    {
+        Return $false
+    }
+
+	if (-Not (IsLocalGitUpToDate $RepositoryLocal))
     {
         Return $false
     }
@@ -119,6 +130,8 @@ function Test-TargetResource
 
 function InstallGit
 {
+    Write-Verbose "[GITPULL] Start InstallGit"
+
     Set-ExecutionPolicy Unrestricted
     iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
     choco install git
@@ -128,7 +141,10 @@ function InstallGit
 
 function IsGitInstalled
 {
+    Write-Verbose "[GITPULL] Start IsGitInstalled"
+
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
+
     Try
     {
         Exec({git help})
@@ -136,7 +152,7 @@ function IsGitInstalled
     }
     Catch
     {
-        #Write-Host "Git not installed"
+        Write-Verbose "[GITPULL] Git not installed"
         return $false
     }
     
@@ -149,6 +165,9 @@ function GitCreatePullUpdate
             [Parameter(Position=0,Mandatory=1)][string]$repoLocationRemote, 
             [Parameter(Position=1,Mandatory=1)][string]$repoLocationLocal
         ) 
+
+    Write-Verbose "[GITPULL] Start GitCreatePullUpdate"
+
     $repoUrl = $repoLocationRemote
     $repoLocal = $repoLocationLocal
     if (Test-Path $repoLocationLocal)
@@ -166,16 +185,18 @@ function GitCreatePullUpdate
     }
 
     Set-Location $repoLocal
-    $output = ExecGitCommand status
-    if ($output -contains '*Not a git repository*')
+    
+    if (-not (IsAGitRepository $repoLocal))
     {
+		Write-Verbose "[GITPULL] Not a repo, initiating clone"
         gitClone $repoUrl $repoLocal
     }
     else
     {
         if (-Not (isLocalGitUpToDate($repoLocal)))
         {
-            ExecGitCommand pull
+			Write-Verbose "[GITPULL] Not up to date, initiating pull"
+            ExecGitCommand "pull"
         }
     }
 
@@ -188,23 +209,14 @@ function GitClone
         [Parameter(Position=1,Mandatory=1)][string]$repoLocationLocal
     ) 
 
+    Write-Verbose "[GITPULL] Start Clone"
 
+	$command = "clone "+ $repoLocationRemote +" "+ $repoLocationLocal 
 
-    $psi = New-object System.Diagnostics.ProcessStartInfo 
-    $psi.CreateNoWindow = $true 
-    $psi.UseShellExecute = $false 
-    $psi.RedirectStandardOutput = $true 
-    $psi.RedirectStandardError = $true 
-    $psi.FileName = 'git' 
-    $psi.Arguments = "clone "+ $repoLocationRemote +" "+ $repoLocationLocal 
-    $process = New-Object System.Diagnostics.Process 
-    $process.StartInfo = $psi
-    $process.Start() | Out-Null
-    $process.WaitForExit()
-    $output = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
+    $output = ExecGitCommand $command
     
 
-    #Write-Host $output
+    Write-Verbose $output
 
 }
 
@@ -215,6 +227,7 @@ function Exec
         [Parameter(Position=0,Mandatory=1)][scriptblock]$cmd,
         [Parameter(Position=1,Mandatory=0)][string]$errorMessage = ($msgs.error_bad_command -f $cmd)
     )
+    Write-Verbose "[GITPULL] Exec"
     & $cmd
     if ($lastexitcode -ne 0) {
         throw ("Exec: " + $errorMessage)
@@ -226,19 +239,52 @@ function ExecGitCommand
     param(
         [Parameter(Position=1,Mandatory=0)][string]$args
     )
+    Write-Verbose "[GITPULL] Exec Git Command"
+
+	$location = Get-Location
+	Write-Verbose $location
+
     $psi = New-object System.Diagnostics.ProcessStartInfo 
     $psi.CreateNoWindow = $true 
     $psi.UseShellExecute = $false 
     $psi.RedirectStandardOutput = $true 
     $psi.RedirectStandardError = $true 
-    $psi.FileName = 'git' 
-    $psi.Arguments = "clone "+ $repoLocationRemote +" "+ $repoLocationLocal 
+    $psi.FileName = "git" 
+	$psi.WorkingDirectory = $location.ToString()
+    $psi.Arguments = $args
     $process = New-Object System.Diagnostics.Process 
     $process.StartInfo = $psi
     $process.Start() | Out-Null
     $process.WaitForExit()
     $output = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
+
+	Write-Verbose "[GITPULL] Exec Git Command - $args"
+
     return $output
+}
+
+function IsAGitRepository
+{
+	param(
+        [Parameter(Position=0,Mandatory=1)][string]$repoLocation
+    ) 
+
+	Write-Verbose "[GITPULL] Start IsAGitRepository $repoLocation"
+
+	Set-Location $repoLocation
+	$output = ExecGitCommand "status"
+    if ($output.Contains("fatal"))
+    {
+		Write-Verbose "[GITPULL] false $output"
+		Return $false
+	}
+	else
+	{
+		Write-Verbose "[GITPULL] true $output"
+
+		Return $true
+	}
+
 }
 
 function IsLocalGitUpToDate
@@ -246,14 +292,19 @@ function IsLocalGitUpToDate
     param(
         [Parameter(Position=0,Mandatory=1)][string]$repoLocation
     ) 
+    Write-Verbose "[GITPULL] Start IsLocalGitUpToDate $repoLK"
+    
+	Set-Location $repoLocation
 
-    Set-Location $repoLocation
+    $local = ExecGitCommand "rev-parse HEAD"
+    $remote = ExecGitCommand "rev-parse origin/master"
 
-    $local = ExecGitCommand 'rev-parse HEAD'
-    $remote = ExecGitCommand 'rev-parse origin/master'
+    Write-Verbose "Local Commit vs Remote commit $local  $remote"
 
     if ($local -eq $remote)
     {
+        $resetOutput = ExecGitCommand "reset --hard Head"
+        Write-Verbose "Reset to head $resetOutput"
         return $true;
     }
     else
