@@ -189,14 +189,16 @@ function GitCreatePullUpdate
     if (-not (IsAGitRepository $repoLocal))
     {
 		Write-Verbose "[GITPULL] Not a repo, initiating clone"
-        gitClone $repoUrl $repoLocal
+        $cloneOutput = gitClone $repoUrl $repoLocal
+		Write-Verbose "[GITPULL] $cloneOutput"
     }
     else
     {
         if (-Not (isLocalGitUpToDate($repoLocal)))
         {
 			Write-Verbose "[GITPULL] Not up to date, initiating pull"
-            ExecGitCommand "pull"
+            $pullOutput = ExecGitCommand "pull"
+			Write-Verbose "[GITPULL] $pullOutput"
         }
     }
 
@@ -211,12 +213,12 @@ function GitClone
 
     Write-Verbose "[GITPULL] Start Clone"
 
-	$command = "clone "+ $repoLocationRemote +" "+ $repoLocationLocal 
+	$command = "clone "+ $repoLocationRemote +" "+ $repoLocationLocal + " -v" 
 
     $output = ExecGitCommand $command
     
 
-    Write-Verbose $output
+    Return $output
 
 }
 
