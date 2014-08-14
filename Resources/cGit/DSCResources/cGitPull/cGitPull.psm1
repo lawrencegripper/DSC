@@ -170,11 +170,11 @@ function GitCreatePullUpdate
 
     $repoUrl = $repoLocationRemote
     $repoLocal = $repoLocationLocal
-    if ((Test-Path $repoLocationLocal) -and -not (IsAGitRepository $RepositoryLocal))
+    if ((Test-Path $repoLocationLocal))
     {
         $directoryInfo = Get-ChildItem $repoLocationLocal | Measure-Object
 
-        if ($directoryInfo.Count -gt 0)
+        if ($directoryInfo.Count -gt 0 -and -not (IsAGitRepository $RepositoryLocal))
         {
             throw "Directory must be empty for git to create repository"
         }
@@ -239,10 +239,9 @@ function ExecGitCommand
     param(
         [Parameter(Position=1,Mandatory=0)][string]$args
     )
-    Write-Verbose "[GITPULL] Exec Git Command"
 
 	$location = Get-Location
-	Write-Verbose $location
+	Write-Verbose "[GITPULL] Exec Git Command Prep Setting Current Location: $location"
 
     $psi = New-object System.Diagnostics.ProcessStartInfo 
     $psi.CreateNoWindow = $true 
@@ -308,7 +307,7 @@ function IsLocalGitUpToDate
     if ($local -eq $remote)
     {
         $resetOutput = ExecGitCommand "reset --hard Head"
-        Write-Verbose "Reset to head $resetOutput"
+        Write-Verbose "Remote matches local: Reseting to head just to be sure files are unchanged $resetOutput"
         return $true;
     }
     else
