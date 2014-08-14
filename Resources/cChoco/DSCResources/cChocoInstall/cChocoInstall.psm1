@@ -53,7 +53,7 @@ function Set-TargetResource
     )
     Write-Verbose "[CHOCOINSTALL] Start Set-TargetResource"
     
-    if (-not (IsPackageInstalled $Name))
+    if (-not (DoesCommandExist choco) -or -not (IsPackageInstalled $Name))
     {
         InstallPackage $Name
     }
@@ -77,7 +77,7 @@ function Test-TargetResource
 
     Write-Verbose "[CHOCOINSTALL] Start Test-TargetResource"
 
-    if (-not DoesCommandExist choco)
+    if (-not (DoesCommandExist choco))
     {
         return $false
     }
@@ -145,13 +145,13 @@ function ExecPowerShellScript
     Write-Verbose "[ChocoInstall] ExecPowerShellScriptBlock Prep Setting Current Location: $location"
 
     $psi = New-object System.Diagnostics.ProcessStartInfo 
-    $psi.CreateNoWindow = $true 
+    $psi.CreateNoWindow = $false 
     $psi.UseShellExecute = $false 
     $psi.RedirectStandardOutput = $true 
     $psi.RedirectStandardError = $true 
-    $psi.FileName = "powershell " 
+    $psi.FileName = "powershell" 
     $psi.WorkingDirectory = $location.ToString()
-    $psi.Arguments = "-ExecutionPolicy unrestricted -command '$block'" 
+    $psi.Arguments = "-ExecutionPolicy Unrestricted -command $block" 
     $process = New-Object System.Diagnostics.Process 
     $process.StartInfo = $psi
     $process.Start() | Out-Null
@@ -274,7 +274,7 @@ function InstallChoco
     
     $installOutput = ExecPowerShellScript $chocInstallPS1
     
-    Write-verbose $installOutput
+    Write-verbose "[choco output]$installOutput"
 
     
     write-verbose 'Ensuring chocolatey commands are on the path'
