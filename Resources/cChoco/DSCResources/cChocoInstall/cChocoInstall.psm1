@@ -26,12 +26,12 @@ function Get-TargetResource
 
     if (-not (IsPackageInstalled $Name))
     {
-        $Configuration.Ensure = 'Absent'
+        $Configuration.Ensure = "Absent"
         Return $Configuration
     }
     else
     {
-        $Configuration.Ensure = 'Present'
+        $Configuration.Ensure = "Present"
         Return $Configuration
 
     }
@@ -91,16 +91,25 @@ function InstallPackage
     param(
             [Parameter(Position=0,Mandatory=1)][string]$pName
         ) 
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
 
-    Write-Verbose "[ChocoInstall] Start InstallPackage $pName"
+    $sb = {
+        $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine')
 
-    Set-ExecutionPolicy Unrestricted
-    iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
+        Write-Verbose '[ChocoInstall] Start InstallPackage'
+        Write-Verbose  $pName
+
+        Set-ExecutionPolicy Unrestricted
+        iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
     
-    choco install $pName
-    
-    #refresh path varaible in powershell, as choco doesn't, to pull in git
+        choco install $pName
+    }
+
+    #Execute using start process to ensure choco can get to where it needs and avoid issues with Write-Host etc
+    $installOutput = ExecPowerShellScriptBlock $sb
+
+    Write-Verbose "[ChocoInstall] output $installOutput"
+
+    #refresh path varaible in powershell, as choco doesn"t, to pull in git
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
 }
 
@@ -116,7 +125,7 @@ function IsPackageInstalled
 
     $installedPackages = choco list -lo | Where-object { $_.Contains($pName) }
 
-    if ($installedPackages.Count -eq 1)
+    if ($installedPackages.Count -gt 1)
     {
         return $true
     }
@@ -124,6 +133,56 @@ function IsPackageInstalled
     return $false
 
     
+}
+
+
+function ExecPowerShellScriptBlock
+{
+    param(
+        [Parameter(Position=1,Mandatory=0)][scriptblock]$block
+    )
+
+    $location = Get-Location
+    Write-Verbose "[ChocoInstall] ExecPowerShellScriptBlock Prep Setting Current Location: $location"
+
+    $psi = New-object System.Diagnostics.ProcessStartInfo 
+    $psi.CreateNoWindow = $true 
+    $psi.UseShellExecute = $false 
+    $psi.RedirectStandardOutput = $true 
+    $psi.RedirectStandardError = $true 
+    $psi.FileName = "powershell " 
+    $psi.WorkingDirectory = $location.ToString()
+    $psi.Arguments = "-ExecutionPolicy Bypass -Command & {$block}" 
+    $process = New-Object System.Diagnostics.Process 
+    $process.StartInfo = $psi
+    $process.Start() | Out-Null
+    $process.WaitForExit()
+    $output = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
+
+    Write-Verbose "[ChocoInstall] Exec powershell Command - $block"
+
+    return $output
+}
+
+##attempting to work around the issues with Chocolatey calling Write-host in its scripts. 
+function global:Write-Host
+{
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        [Object]
+        $Object,
+        [Switch]
+        $NoNewLine,
+        [ConsoleColor]
+        $ForegroundColor,
+        [ConsoleColor]
+        $BackgroundColor
+
+    )
+
+    #Override default Write-Host...
+    Write-Verbose $Object
 }
 
 
