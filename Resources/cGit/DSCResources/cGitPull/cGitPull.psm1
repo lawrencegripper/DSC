@@ -170,7 +170,7 @@ function GitCreatePullUpdate
 
     $repoUrl = $repoLocationRemote
     $repoLocal = $repoLocationLocal
-    if (Test-Path $repoLocationLocal)
+    if ((Test-Path $repoLocationLocal) -and -not (IsAGitRepository $RepositoryLocal))
     {
         $directoryInfo = Get-ChildItem $repoLocationLocal | Measure-Object
 
@@ -295,6 +295,10 @@ function IsLocalGitUpToDate
     Write-Verbose "[GITPULL] Start IsLocalGitUpToDate $repoLK"
     
 	Set-Location $repoLocation
+
+	$update = ExecGitCommand "fetch origin"
+
+	Write-Verbose "[GITPULL] Fetch Origin $update"
 
     $local = ExecGitCommand "rev-parse HEAD"
     $remote = ExecGitCommand "rev-parse origin/master"
