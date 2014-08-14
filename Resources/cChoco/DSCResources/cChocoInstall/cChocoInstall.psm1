@@ -92,26 +92,33 @@ function InstallPackage
             [Parameter(Position=0,Mandatory=1)][string]$pName
         ) 
 
-    $sb = {
-        $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine')
+        #$job = start-job {
+            $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine')
 
-        Write-Verbose '[ChocoInstall] Start InstallPackage'
-        Write-Verbose  $pName
+            Write-Verbose '[ChocoInstall] Start InstallChoco'
 
-        Set-ExecutionPolicy Unrestricted
-        iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
+            iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1')) 
+        #}
+
+
+        # Wait for it all to complete
+        #While (Get-Job -State "Running")
+        #{
+        #  Start-Sleep 10
+        #}
     
-        choco install $pName
-    }
+        #$chocoInstallOutput = Receive-Job -Job $job
 
-    #Execute using start process to ensure choco can get to where it needs and avoid issues with Write-Host etc
-    $installOutput = ExecPowerShellScriptBlock $sb
+        $packageInstallOuput = choco install $pName
+    
 
-    Write-Verbose "[ChocoInstall] output $installOutput"
+    Write-Verbose "[ChocoInstall] choco output $chocoInstallOutput"
+    Write-Verbose "[ChocoInstall] package output $packageInstallOuput"
 
     #refresh path varaible in powershell, as choco doesn"t, to pull in git
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
 }
+
 
 function IsPackageInstalled
 {
@@ -119,9 +126,9 @@ function IsPackageInstalled
             [Parameter(Position=0,Mandatory=1)][string]$pName
         ) 
     Write-Verbose "[ChocoInstall] Start IsPackageInstalled $pName"
+
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
-    
-    Write-Verbose "[ChocoInstall] Start IsPackageInstalled $env:path"
+
 
     $installedPackages = choco list -lo | Where-object { $_.Contains($pName) }
 
@@ -136,10 +143,10 @@ function IsPackageInstalled
 }
 
 
-function ExecPowerShellScriptBlock
+function ExecPowerShellScript
 {
     param(
-        [Parameter(Position=1,Mandatory=0)][scriptblock]$block
+        [Parameter(Position=1,Mandatory=0)][string]$block
     )
 
     $location = Get-Location
@@ -152,7 +159,7 @@ function ExecPowerShellScriptBlock
     $psi.RedirectStandardError = $true 
     $psi.FileName = "powershell " 
     $psi.WorkingDirectory = $location.ToString()
-    $psi.Arguments = "-ExecutionPolicy Bypass -Command & {$block}" 
+    $psi.Arguments = "-ExecutionPolicy unrestricted -command '$block'" 
     $process = New-Object System.Diagnostics.Process 
     $process.StartInfo = $psi
     $process.Start() | Out-Null
@@ -164,6 +171,8 @@ function ExecPowerShellScriptBlock
     return $output
 }
 
+
+##region - chocolately installer work arounds. Main issue is use of write-host
 ##attempting to work around the issues with Chocolatey calling Write-host in its scripts. 
 function global:Write-Host
 {
@@ -183,6 +192,90 @@ function global:Write-Host
 
     #Override default Write-Host...
     Write-Verbose $Object
+}
+
+## Adapated version of the Chocolatey install script, now using write-verbose
+
+# ==============================================================================
+# 
+# Fervent Coder Copyright 2011 - Present - Released under the Apache 2.0 License
+# 
+# Copyright 2007-2008 The Apache Software Foundation.
+#  
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
+# this file except in compliance with the License. You may obtain a copy of the 
+# License at 
+#
+#     http://www.apache.org/licenses/LICENSE-2.0 
+# 
+# Unless required by applicable law or agreed to in writing, software distributed 
+# under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+# CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+# specific language governing permissions and limitations under the License.
+# ==============================================================================
+
+# variables
+$url = "http://chocolatey.org/api/v2/package/chocolatey/"
+$chocTempDir = Join-Path $env:TEMP "chocolatey"
+$tempDir = Join-Path $chocTempDir "chocInstall"
+if (![System.IO.Directory]::Exists($tempDir)) {[System.IO.Directory]::CreateDirectory($tempDir)}
+$file = Join-Path $tempDir "chocolatey.zip"
+
+function Download-File {
+    param (
+      [string]$url,
+      [string]$file
+     )
+  Write-verbose "Downloading $url to $file"
+  $downloader = new-object System.Net.WebClient
+  $downloader.Proxy.Credentials=[System.Net.CredentialCache]::DefaultNetworkCredentials;
+  $downloader.DownloadFile($url, $file)
+}
+
+function InstallChoco
+{
+    # download the package
+    Download-File $url $file
+    
+    # download 7zip
+    Write-verbose "Download 7Zip commandline tool"
+    $7zaExe = Join-Path $tempDir '7za.exe'
+    
+    Download-File 'http://chocolatey.org/7za.exe' "$7zaExe"
+    
+    
+    # unzip the package
+    Write-verbose "Extracting $file to $tempDir..."
+    Start-Process "$7zaExe" -ArgumentList "x -o`"$tempDir`" -y `"$file`"" -Wait -NoNewWindow
+    #$shellApplication = new-object -com shell.application 
+    #$zipPackage = $shellApplication.NameSpace($file) 
+    #$destinationFolder = $shellApplication.NameSpace($tempDir) 
+    #$destinationFolder.CopyHere($zipPackage.Items(),0x10)
+    
+    # call chocolatey install
+    Write-verbose "Installing chocolatey on this machine"
+    $toolsFolder = Join-Path $tempDir "tools"
+    $chocInstallPS1 = Join-Path $toolsFolder "chocolateyInstall.ps1"
+    
+    $installOutput = ExecPowerShellScript $chocInstallPS1
+    Write-verbose $installOutput
+
+    
+    write-verbose 'Ensuring chocolatey commands are on the path'
+    $chocInstallVariableName = "ChocolateyInstall"
+    $chocoPath = [Environment]::GetEnvironmentVariable($chocInstallVariableName, [System.EnvironmentVariableTarget]::User)
+    $chocoExePath = 'C:\Chocolatey\bin'
+    if ($chocoPath -ne $null) {
+      $chocoExePath = Join-Path $chocoPath 'bin'
+    }
+    
+    if ($($env:Path).ToLower().Contains($($chocoExePath).ToLower()) -eq $false) {
+      $env:Path = [Environment]::GetEnvironmentVariable('Path',[System.EnvironmentVariableTarget]::Machine);
+    }
+    
+    # update chocolatey to the latest version
+    #Write-verbose "Updating chocolatey to the latest version"
+    #cup chocolatey
 }
 
 
