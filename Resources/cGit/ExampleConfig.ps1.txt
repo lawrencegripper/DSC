@@ -1,17 +1,24 @@
-
 Configuration myGitConfig
 {
-   # A Configuration block can have zero or more Node blocks
-   Import-DscResource -Module cGit
-
+   Import-DscResource -Module cGit  
    Node "localhost"
    {
+      LocalConfigurationManager
+      {
+          ConfigurationMode = "ApplyAndAutoCorrect"
+          ConfigurationModeFrequencyMins = 30 #must be a multiple of the RefreshFrequency and how often configuration is checked
+      }
       cGitPull pullRepo
       {
-        Ensure = 'Present'
-        RepositoryLocal = 'c:\temp\gitdsc'
+        Name = 'test'
+        RepositoryLocal = "c:\temp\gitdsc\"
         RepositoryRemote = 'https://github.com/lawrencegripper/FluentMongoIntegrationTesting'
+        Ensure = 'Present'
       }
       
    }
 } 
+
+mygitconfig
+
+Start-DscConfiguration .\myGitConfig -wait -Verbose
