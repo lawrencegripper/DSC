@@ -1,4 +1,4 @@
-Community Git DSC Resource - Lawrence Gripper
+Community Git DSC Resource - @lawrencegripper
 =============================
 
 This resource is aimed at keeping a git repository up to date. 
