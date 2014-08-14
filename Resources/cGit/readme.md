@@ -1,7 +1,7 @@
 Community Git DSC Resource - @lawrencegripper
 =============================
 
-This resource is aimed at keeping a git repository up to date. 
+This resource is aimed at keeping a git repository up to date. Currently early beta version.  
 
 The resource checks the status of the repository, pulling updates and keeping local files in sync with remote commits. 
 
