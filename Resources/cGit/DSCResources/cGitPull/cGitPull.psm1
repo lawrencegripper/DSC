@@ -1,3 +1,5 @@
+$scriptLocationOfGitExe = $null
+
 function Get-TargetResource
 {
     [CmdletBinding()]
@@ -19,9 +21,11 @@ function Get-TargetResource
 
 		[parameter(Mandatory=$false)]
         [System.String]
-        $GitExeLocation
+        $LocationOfGitExe
 
     )
+
+	$scriptLocationOfGitExe = $LocationOfGitExe
 
     Write-Verbose "[GITPULL] Start Get-TargetResource"
 
@@ -69,9 +73,11 @@ function Set-TargetResource
 
 		[parameter(Mandatory=$false)]
         [System.String]
-        $GitExeLocation
+        $LocationOfGitExe
+
     )
 
+	$scriptLocationOfGitExe = $LocationOfGitExe
     Write-Verbose "[GITPULL] Start Set-TargetResource"
     
     if (-not (IsGitInstalled))
@@ -102,8 +108,11 @@ function Test-TargetResource
 
 		[parameter(Mandatory=$false)]
         [System.String]
-        $GitExeLocation
+        $LocationOfGitExe
+
     )
+
+	$scriptLocationOfGitExe = $LocationOfGitExe
 
     Write-Verbose "[GITPULL] Start Test-TargetResource"
 
@@ -136,16 +145,31 @@ function IsGitInstalled
 
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
 
-    Try
-    {
-        Exec({git help})
-        return $true
-    }
-    Catch
-    {
-        Write-Verbose "[GITPULL] Git not installed"
-        return $false
-    }
+	if (DoesCommandExist git)
+	{
+		Write-Verbose "[GITPULL] Git found in enviroment path"
+		return $true
+	}
+
+	if (-not ($scriptLocationOfGitExe -eq $null) -and (Test-Path $scriptLocationOfGitExe))
+	{
+		Write-Verbose "[GITPULL] Git found at specified path"
+		return $true
+	}
+
+	Write-Verbose "[GITPULL] Git not found in enviroment path or gitExePath"
+	return $false
+
+    #Try
+    #{
+    #    Exec({git help})
+    #    return $true
+    #}
+    #Catch
+    #{
+    #    Write-Verbose "[GITPULL] Git not installed"
+    #    return $false
+    #}
 }
 
 function DoesCommandExist
@@ -232,20 +256,6 @@ function GitClone
 
     Return $output
 
-}
-
-function Exec
-{
-    [CmdletBinding()]
-    param(
-        [Parameter(Position=0,Mandatory=1)][scriptblock]$cmd,
-        [Parameter(Position=1,Mandatory=0)][string]$errorMessage = ($msgs.error_bad_command -f $cmd)
-    )
-    Write-Verbose "[GITPULL] Exec"
-    & $cmd
-    if ($lastexitcode -ne 0) {
-        throw ("Exec: " + $errorMessage)
-    }
 }
 
 function ExecGitCommand
