@@ -151,7 +151,7 @@ function IsGitInstalled
 		return $true
 	}
 
-	if (-not ($scriptLocationOfGitExe -eq $null) -and (Test-Path $scriptLocationOfGitExe))
+	if (($scriptLocationOfGitExe) -and (Test-Path $scriptLocationOfGitExe))
 	{
 		Write-Verbose "[GITPULL] Git found at specified path"
 		return $true
@@ -270,11 +270,15 @@ function ExecGitCommand
 	#default to git command from enviroment path
 	$gitCmd = "git"
 
-	#check if location specified for git exe
-	if ($scriptLocationOfGitExe -ne $null)
+	#check if location specified for git exe and git command not in enviroment path
+	if (($scriptLocationOfGitExe) -and -not (DoesCommandExist git))
 	{
 		Write-Verbose "[GITPULL] Exec Git using specified path: $scriptLocationOfGitExe"
 		$gitCmd = $scriptLocationOfGitExe
+	}
+	else
+	{
+		Write-Verbose "[GITPULL] Exec Git using path from enviroment variable"
 	}
 
 	#envoke git in new process to capture output
