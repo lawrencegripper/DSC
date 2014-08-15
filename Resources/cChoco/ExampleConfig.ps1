@@ -10,7 +10,10 @@ Configuration myChocoConfig
           ConfigurationModeFrequencyMins = 30 #must be a multiple of the RefreshFrequency and how often configuration is checked
       }
       cChocoInstaller installChoco
-      cChocoPackageInstall installGit
+      {
+        Name = "OneKeyPropertyRequiredUnused"
+      }
+      cChocoPackageInstaller installGit
       {
         Name = "git.install"
         DependsOn = "[cChocoInstaller]installChoco"
@@ -20,7 +23,8 @@ Configuration myChocoConfig
         Name = 'test'
         RepositoryLocal = "c:\temp\gitdsc\"
         RepositoryRemote = 'https://github.com/lawrencegripper/FluentMongoIntegrationTesting'
-        DependsOn = "[cChocoInstall]installGit"
+        LocationOfGitExe = "C:\Program Files (x86)\Git\bin\git.exe"
+        DependsOn = "[cChocoPackageInstaller]installGit"
       }
       
    }
