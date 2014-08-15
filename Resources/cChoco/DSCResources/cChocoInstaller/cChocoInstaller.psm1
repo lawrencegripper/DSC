@@ -20,12 +20,12 @@ function Get-TargetResource
 
     if (-not (IsChocoInstalled))
     {
-        $Configuration.Ensure = "Absent"
+        #$Configuration.Ensure = "Absent"
         Return $Configuration
     }
     else
     {
-        $Configuration.Ensure = "Present"
+        #$Configuration.Ensure = "Present"
         Return $Configuration
 
     }
@@ -63,11 +63,6 @@ function Test-TargetResource
 
     Write-Verbose "[ChocoInstaller] Start Test-TargetResource"
 
-    if (-not (DoesCommandExist choco))
-    {
-        return $false
-    }
-
     if (-not (IsChocoInstalled))
     {
         Return $false
@@ -92,9 +87,7 @@ function InstallPackage
 
 function IsChocoInstalled
 {
-    param(
-            [Parameter(Position=0,Mandatory=1)][string]$pName
-        ) 
+
     Write-Verbose "[ChocoInstaller] Is choco installed? "
 
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
