@@ -7,11 +7,7 @@ function Get-TargetResource
         [parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        $Name,
-
-        [ValidateSet("Present", "Absent")]
-        [System.String]
-        $Ensure = "Present"
+        $Name
 
     )
 
@@ -45,11 +41,7 @@ function Set-TargetResource
         [parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        $Name,
-
-        [ValidateSet("Present", "Absent")]
-        [System.String]
-        $Ensure = "Present"
+        $Name
     )
     Write-Verbose "[CHOCOINSTALL] Start Set-TargetResource"
     
@@ -68,11 +60,7 @@ function Test-TargetResource
         [parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        $Name,
-
-        [ValidateSet("Present", "Absent")]
-        [System.String]
-        $Ensure = "Present"
+        $Name
     )
 
     Write-Verbose "[CHOCOINSTALL] Start Test-TargetResource"
