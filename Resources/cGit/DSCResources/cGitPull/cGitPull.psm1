@@ -17,14 +17,16 @@ function Get-TargetResource
         [System.String]
         $RepositoryRemote,
 
-        [ValidateSet("Present", "Absent")]
+		[parameter(Mandatory=$false)]
         [System.String]
-        $Ensure = "Present"
+        $GitExeLocation
 
     )
 
     Write-Verbose "[GITPULL] Start Get-TargetResource"
 
+
+	
 
     #Needs to return a hashtable that returns the current
     #status of the configuration component
@@ -65,10 +67,11 @@ function Set-TargetResource
         [System.String]
         $RepositoryRemote,
 
-        [ValidateSet("Present", "Absent")]
+		[parameter(Mandatory=$false)]
         [System.String]
-        $Ensure = "Present"
+        $GitExeLocation
     )
+
     Write-Verbose "[GITPULL] Start Set-TargetResource"
     
     if (-not (IsGitInstalled))
@@ -97,9 +100,9 @@ function Test-TargetResource
         [System.String]
         $RepositoryRemote,
 
-        [ValidateSet("Present", "Absent")]
+		[parameter(Mandatory=$false)]
         [System.String]
-        $Ensure = "Present"
+        $GitExeLocation
     )
 
     Write-Verbose "[GITPULL] Start Test-TargetResource"
@@ -143,9 +146,30 @@ function IsGitInstalled
         Write-Verbose "[GITPULL] Git not installed"
         return $false
     }
-    
-
 }
+
+function DoesCommandExist
+{
+    Param ($command)
+
+    $oldPreference = $ErrorActionPreference
+    $ErrorActionPreference = 'stop'
+
+    try 
+    {
+        if(Get-Command $command)
+        {
+            return $true
+        }
+    }
+    Catch 
+    {
+        return $false
+    }
+    Finally {
+        $ErrorActionPreference=$oldPreference
+    }
+} 
 
 function GitCreatePullUpdate
 {
