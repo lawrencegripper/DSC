@@ -269,9 +269,11 @@ function ExecGitCommand
 
 	#default to git command from enviroment path
 	$gitCmd = "git"
+
+	#check if location specified for git exe
 	if ($scriptLocationOfGitExe -ne $null)
 	{
-		#if specified use specific location
+		Write-Verbose "[GITPULL] Exec Git using specified path: $scriptLocationOfGitExe"
 		$gitCmd = $scriptLocationOfGitExe
 	}
 
