@@ -2,7 +2,13 @@ function Get-TargetResource
 {
     [CmdletBinding()]
     [OutputType([System.Collections.Hashtable])]
-
+    param
+    (
+        [parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.String]
+        $Name
+    )
     Write-Verbose "[ChocoInstaller] Start Get-TargetResource"
 
 
@@ -12,7 +18,7 @@ function Get-TargetResource
         Name = $Name
     }
 
-    if (-not (IsChocoInstalled $Name))
+    if (-not (IsChocoInstalled))
     {
         $Configuration.Ensure = "Absent"
         Return $Configuration
@@ -37,9 +43,9 @@ function Set-TargetResource
     )
     Write-Verbose "[ChocoInstaller] Start Set-TargetResource"
     
-    if (-not (DoesCommandExist choco) -or -not (IsChocoInstalled $Name))
+    if (-not (DoesCommandExist choco) -or -not (IsChocoInstalled))
     {
-        InstallPackage $Name
+        InstallPackage
     }
 }
 
@@ -62,7 +68,7 @@ function Test-TargetResource
         return $false
     }
 
-    if (-not (IsChocoInstalled $Name))
+    if (-not (IsChocoInstalled))
     {
         Return $false
     }
@@ -73,10 +79,6 @@ function Test-TargetResource
 
 function InstallPackage
 {
-    param(
-            [Parameter(Position=0,Mandatory=1)][string]$pName
-    ) 
-
     $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine')
 
     Write-Verbose '[ChocoInstaller] Start InstallChoco'

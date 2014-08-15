@@ -9,9 +9,11 @@ Configuration myChocoConfig
           ConfigurationMode = "ApplyAndAutoCorrect"
           ConfigurationModeFrequencyMins = 30 #must be a multiple of the RefreshFrequency and how often configuration is checked
       }
-      cChocoInstall installGit
+      cChocoInstaller installChoco
+      cChocoPackageInstall installGit
       {
         Name = "git.install"
+        DependsOn = "[cChocoInstaller]installChoco"
       }
       cGitPull pullRepo
       {
