@@ -13,7 +13,7 @@ Configuration myGitConfig
         Name = 'test'
         RepositoryLocal = "c:\temp\gitdsc\"
         RepositoryRemote = 'https://github.com/lawrencegripper/FluentMongoIntegrationTesting'
-        Ensure = 'Present'
+		#LocationOfGitExe = "C:\Program Files (x86)\Git\bin\git.exe" ##optional parameter, if git is installed and setup on PATH enviroment variable this is not required. 
       }
       
    }
