@@ -267,12 +267,21 @@ function ExecGitCommand
     $location = Get-Location
     Write-Verbose "[GITPULL] Exec Git Command Prep Setting Current Location: $location"
 
+	#default to git command from enviroment path
+	$gitCmd = "git"
+	if ($scriptLocationOfGitExe -ne $null)
+	{
+		#if specified use specific location
+		$gitCmd = $scriptLocationOfGitExe
+	}
+
+	#envoke git in new process to capture output
     $psi = New-object System.Diagnostics.ProcessStartInfo 
     $psi.CreateNoWindow = $true 
     $psi.UseShellExecute = $false 
     $psi.RedirectStandardOutput = $true 
     $psi.RedirectStandardError = $true 
-    $psi.FileName = "git" 
+    $psi.FileName = $gitCmd 
     $psi.WorkingDirectory = $location.ToString()
     $psi.Arguments = $args
     $process = New-Object System.Diagnostics.Process 
@@ -281,7 +290,7 @@ function ExecGitCommand
     $process.WaitForExit()
     $output = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
 
-    Write-Verbose "[GITPULL] Exec Git Command - $args"
+    Write-Verbose "[GITPULL] Exec Git Command: $args"
 
     return $output
 }
