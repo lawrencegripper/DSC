@@ -27,7 +27,7 @@ function Get-TargetResource
 
 	$scriptLocationOfGitExe = $LocationOfGitExe
 
-    Write-Verbose "[GITPULL] Start Get-TargetResource"
+    Write-Verbose "Start Get-TargetResource"
 
 
 	
@@ -78,7 +78,7 @@ function Set-TargetResource
     )
 
 	$scriptLocationOfGitExe = $LocationOfGitExe
-    Write-Verbose "[GITPULL] Start Set-TargetResource"
+    Write-Verbose "Start Set-TargetResource"
     
     if (-not (IsGitInstalled))
     {
@@ -114,7 +114,7 @@ function Test-TargetResource
 
 	$scriptLocationOfGitExe = $LocationOfGitExe
 
-    Write-Verbose "[GITPULL] Start Test-TargetResource"
+    Write-Verbose "Start Test-TargetResource"
 
     if (-not (IsGitInstalled))
     {
@@ -141,23 +141,23 @@ function Test-TargetResource
 
 function IsGitInstalled
 {
-    Write-Verbose "[GITPULL] Start IsGitInstalled"
+    Write-Verbose "Start IsGitInstalled"
 
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
 
 	if (DoesCommandExist git)
 	{
-		Write-Verbose "[GITPULL] Git found in enviroment path"
+		Write-Verbose "Git found in enviroment path"
 		return $true
 	}
 
 	if (($scriptLocationOfGitExe) -and (Test-Path $scriptLocationOfGitExe))
 	{
-		Write-Verbose "[GITPULL] Git found at specified path"
+		Write-Verbose "Git found at specified path"
 		return $true
 	}
 
-	Write-Verbose "[GITPULL] Git not found in enviroment path or gitExePath"
+	Write-Verbose "Git not found in enviroment path or gitExePath"
 	return $false
 
     #Try
@@ -167,7 +167,7 @@ function IsGitInstalled
     #}
     #Catch
     #{
-    #    Write-Verbose "[GITPULL] Git not installed"
+    #    Write-Verbose "Git not installed"
     #    return $false
     #}
 }
@@ -202,7 +202,7 @@ function GitCreatePullUpdate
             [Parameter(Position=1,Mandatory=1)][string]$repoLocationLocal
         ) 
 
-    Write-Verbose "[GITPULL] Start GitCreatePullUpdate"
+    Write-Verbose "Start GitCreatePullUpdate"
 
     $repoUrl = $repoLocationRemote
     $repoLocal = $repoLocationLocal
@@ -224,17 +224,17 @@ function GitCreatePullUpdate
     
     if (-not (IsAGitRepository $repoLocal))
     {
-        Write-Verbose "[GITPULL] Not a repo, initiating clone"
+        Write-Verbose "Not a repo, initiating clone"
         $cloneOutput = gitClone $repoUrl $repoLocal
-        Write-Verbose "[GITPULL] $cloneOutput"
+        Write-Verbose "$cloneOutput"
     }
     else
     {
         if (-Not (isLocalGitUpToDate($repoLocal)))
         {
-            Write-Verbose "[GITPULL] Not up to date, initiating pull"
+            Write-Verbose "Not up to date, initiating pull"
             $pullOutput = ExecGitCommand "pull"
-            Write-Verbose "[GITPULL] $pullOutput"
+            Write-Verbose "$pullOutput"
         }
     }
 
@@ -247,7 +247,7 @@ function GitClone
         [Parameter(Position=1,Mandatory=1)][string]$repoLocationLocal
     ) 
 
-    Write-Verbose "[GITPULL] Start Clone"
+    Write-Verbose "Start Clone"
 
     $command = "clone "+ $repoLocationRemote +" "+ $repoLocationLocal + " -v" 
 
@@ -265,7 +265,7 @@ function ExecGitCommand
     )
 
     $location = Get-Location
-    Write-Verbose "[GITPULL] Exec Git Command Prep Setting Current Location: $location"
+    Write-Verbose "Exec Git Command Prep Setting Current Location: $location"
 
 	#default to git command from enviroment path
 	$gitCmd = "git"
@@ -273,12 +273,12 @@ function ExecGitCommand
 	#check if location specified for git exe and git command not in enviroment path
 	if (($scriptLocationOfGitExe) -and -not (DoesCommandExist git))
 	{
-		Write-Verbose "[GITPULL] Exec Git using specified path: $scriptLocationOfGitExe"
+		Write-Verbose "Exec Git using specified path: $scriptLocationOfGitExe"
 		$gitCmd = $scriptLocationOfGitExe
 	}
 	else
 	{
-		Write-Verbose "[GITPULL] Exec Git using path from enviroment variable"
+		Write-Verbose "Exec Git using path from enviroment variable"
 	}
 
 	#envoke git in new process to capture output
@@ -296,7 +296,7 @@ function ExecGitCommand
     $process.WaitForExit()
     $output = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
 
-    Write-Verbose "[GITPULL] Exec Git Command: $args"
+    Write-Verbose "Exec Git Command: $args"
 
     return $output
 }
@@ -307,18 +307,18 @@ function IsAGitRepository
         [Parameter(Position=0,Mandatory=1)][string]$repoLocation
     ) 
 
-    Write-Verbose "[GITPULL] Start IsAGitRepository $repoLocation"
+    Write-Verbose "Start IsAGitRepository $repoLocation"
 
     Set-Location $repoLocation
     $output = ExecGitCommand "status"
     if ($output.Contains("fatal"))
     {
-        Write-Verbose "[GITPULL] false $output"
+        Write-Verbose "false $output"
         Return $false
     }
     else
     {
-        Write-Verbose "[GITPULL] true $output"
+        Write-Verbose "true $output"
 
         Return $true
     }
@@ -330,13 +330,13 @@ function IsLocalGitUpToDate
     param(
         [Parameter(Position=0,Mandatory=1)][string]$repoLocation
     ) 
-    Write-Verbose "[GITPULL] Start IsLocalGitUpToDate $repoLK"
+    Write-Verbose "Start IsLocalGitUpToDate $repoLK"
     
     Set-Location $repoLocation
 
     $update = ExecGitCommand "fetch origin"
 
-    Write-Verbose "[GITPULL] Fetch Origin $update"
+    Write-Verbose "Fetch Origin $update"
 
     $local = ExecGitCommand "rev-parse HEAD"
     $remote = ExecGitCommand "rev-parse origin/master"

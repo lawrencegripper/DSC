@@ -11,7 +11,7 @@ function Get-TargetResource
 
     )
 
-    Write-Verbose "[CHOCOPACKAGEINSTALL] Start Get-TargetResource"
+    Write-Verbose "Start Get-TargetResource"
 
     CheckChocoInstalled
 
@@ -44,7 +44,7 @@ function Set-TargetResource
         [System.String]
         $Name
     )
-    Write-Verbose "[CHOCOPACKAGEINSTALL] Start Set-TargetResource"
+    Write-Verbose "Start Set-TargetResource"
 
     CheckChocoInstalled
 
@@ -66,7 +66,7 @@ function Test-TargetResource
         $Name
     )
 
-    Write-Verbose "[CHOCOPACKAGEINSTALL] Start Test-TargetResource"
+    Write-Verbose "Start Test-TargetResource"
 
     CheckChocoInstalled
 
@@ -83,7 +83,7 @@ function CheckChocoInstalled
 {
     if (-not (DoesCommandExist choco))
     {
-        throw "[CHOCOPACKAGEINSTALL] cChocoPackageInstall requires Chocolatey to be installed, consider using cChocoInstaller with 'dependson' in dsc config"
+        throw "cChocoPackageInstall requires Chocolatey to be installed, consider using cChocoInstaller with 'dependson' in dsc config"
     }
 }
 
@@ -97,7 +97,7 @@ function InstallPackage
 
     $packageInstallOuput = choco install $pName
     
-    Write-Verbose "[CHOCOPACKAGEINSTALL] package output $packageInstallOuput"
+    Write-Verbose "package output $packageInstallOuput"
 
     #refresh path varaible in powershell, as choco doesn"t, to pull in git
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
@@ -109,7 +109,7 @@ function IsPackageInstalled
     param(
             [Parameter(Position=0,Mandatory=1)][string]$pName
         ) 
-    Write-Verbose "[CHOCOPACKAGEINSTALL] Start IsPackageInstalled $pName"
+    Write-Verbose "Start IsPackageInstalled $pName"
 
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
 

@@ -9,7 +9,7 @@ function Get-TargetResource
         [System.String]
         $Name
     )
-    Write-Verbose "[ChocoInstaller] Start Get-TargetResource"
+    Write-Verbose " Start Get-TargetResource"
 
 
     #Needs to return a hashtable that returns the current
@@ -41,7 +41,7 @@ function Set-TargetResource
         [System.String]
         $Name
     )
-    Write-Verbose "[ChocoInstaller] Start Set-TargetResource"
+    Write-Verbose " Start Set-TargetResource"
     
     if (-not (DoesCommandExist choco) -or -not (IsChocoInstalled))
     {
@@ -61,7 +61,7 @@ function Test-TargetResource
         $Name
     )
 
-    Write-Verbose "[ChocoInstaller] Start Test-TargetResource"
+    Write-Verbose " Start Test-TargetResource"
 
     if (-not (IsChocoInstalled))
     {
@@ -88,18 +88,18 @@ function InstallPackage
 function IsChocoInstalled
 {
 
-    Write-Verbose "[ChocoInstaller] Is choco installed? "
+    Write-Verbose " Is choco installed? "
 
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
 
     if (DoesCommandExist choco)
     {
-        Write-Verbose "[ChocoInstaller] YES - Choco is Installed"
+        Write-Verbose " YES - Choco is Installed"
 
         return $true
     }
 
-    Write-Verbose "[ChocoInstaller] NO - Choco isn't Installed"
+    Write-Verbose " NO - Choco isn't Installed"
 
     return $false
 
@@ -114,7 +114,7 @@ function ExecPowerShellScript
     )
 
     $location = Get-Location
-    Write-Verbose "[ChocoInstaller] ExecPowerShellScriptBlock Prep Setting Current Location: $location"
+    Write-Verbose " ExecPowerShellScriptBlock Prep Setting Current Location: $location"
 
     $psi = New-object System.Diagnostics.ProcessStartInfo 
     $psi.CreateNoWindow = $false 
@@ -130,7 +130,7 @@ function ExecPowerShellScript
     $process.WaitForExit()
     $output = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
 
-    Write-Verbose "[ChocoInstaller] Exec powershell Command - $block"
+    Write-Verbose " Exec powershell Command - $block"
 
     return $output
 }
