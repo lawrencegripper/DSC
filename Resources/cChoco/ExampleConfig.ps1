@@ -11,8 +11,6 @@ Configuration myChocoConfig
       }
       cChocoInstall installGit
       {
-        
-        Ensure = "Present"
         Name = "git.install"
       }
       cGitPull pullRepo
@@ -20,7 +18,6 @@ Configuration myChocoConfig
         Name = 'test'
         RepositoryLocal = "c:\temp\gitdsc\"
         RepositoryRemote = 'https://github.com/lawrencegripper/FluentMongoIntegrationTesting'
-        Ensure = 'Present'
         DependsOn = "[cChocoInstall]installGit"
       }
       
