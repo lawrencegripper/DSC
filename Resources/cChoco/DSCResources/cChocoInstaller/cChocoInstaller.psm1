@@ -7,7 +7,7 @@ function Get-TargetResource
         [parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        $Name
+        $InstallDir
     )
     Write-Verbose " Start Get-TargetResource"
 
@@ -15,7 +15,7 @@ function Get-TargetResource
     #Needs to return a hashtable that returns the current
     #status of the configuration component
     $Configuration = @{
-        Name = $Name
+        InstallDir = $InstallDir
     }
 
     if (-not (IsChocoInstalled))
@@ -39,13 +39,20 @@ function Set-TargetResource
         [parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        $Name
+        $InstallDir
     )
     Write-Verbose " Start Set-TargetResource"
     
     if (-not (DoesCommandExist choco) -or -not (IsChocoInstalled))
     {
-        InstallPackage
+        #$env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine')
+
+        Write-Verbose '[ChocoInstaller] Start InstallChoco'
+        InstallChoco $InstallDir
+        Write-Verbose '[ChocoInstaller] Finish InstallChoco'
+
+        #refresh path varaible in powershell, as choco doesn"t, to pull in git
+        #$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
     }
 }
 
@@ -58,7 +65,7 @@ function Test-TargetResource
         [parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        $Name
+        $InstallDir
     )
 
     Write-Verbose " Start Test-TargetResource"
@@ -70,20 +77,6 @@ function Test-TargetResource
 
     Return $true
 }
-
-
-function InstallPackage
-{
-    $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine')
-
-    Write-Verbose '[ChocoInstaller] Start InstallChoco'
-    InstallChoco
-    Write-Verbose '[ChocoInstaller] Finish InstallChoco'
-
-    #refresh path varaible in powershell, as choco doesn"t, to pull in git
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
-}
-
 
 function IsChocoInstalled
 {
@@ -221,6 +214,9 @@ function Download-File {
 
 function InstallChoco
 {
+    param (
+            [string]$ChocoInstallDir
+    )
     # download the package
     Download-File $url $file
     
@@ -242,9 +238,54 @@ function InstallChoco
     # call chocolatey install
     Write-verbose "Installing chocolatey on this machine"
     $toolsFolder = Join-Path $tempDir "tools"
-    $chocInstallPS1 = Join-Path $toolsFolder "chocolateyInstall.ps1"
+    #$chocInstallPS1 = Join-Path $toolsFolder "chocolateyInstall.ps1"
     
-    $installOutput = ExecPowerShellScript $chocInstallPS1
+    $scriptBlock = {
+        param (
+            [string]$toolsPath,
+            [string]$installFolder
+        )
+        Write-verbose 'Choco Install SriptBlock Start'
+        Write-verbose 'tools folder:'
+        Write-verbose  $toolsPath
+        Write-verbose 'install folder:' 
+        Write-verbose  $installFolder
+
+        if ((Test-Path $installFolder))
+        {
+            Write-verbose 'install folder already exists at $installFolder'
+            
+        }
+        else
+        {
+            Write-verbose 'creating install folder at $installFolder'
+
+            New-Item -ItemType directory -Path $installFolder
+        }
+
+        Set-Location $toolsPath
+
+        #$toolsPath = (Split-Path -parent $MyInvocation.MyCommand.Definition)
+
+        # ensure module loading preference is on
+        $PSModuleAutoLoadingPreference = 'All';
+
+        $modules = Get-ChildItem $toolsPath -Filter *.psm1
+        $modules | ForEach-Object {
+                                                                $psm1File = $_.FullName;
+                                                                $moduleName = $([System.IO.Path]::GetFileNameWithoutExtension($psm1File))
+                                                                remove-module $moduleName -ErrorAction SilentlyContinue;
+                                                                import-module -name  $psm1File;
+                                                            }
+
+        Initialize-Chocolatey -chocolateyPath $installFolder
+
+        Write-verbose 'Choco Install SriptBlock End'
+
+    }
+
+    &$scriptBlock $toolsFolder $ChocoInstallDir
+    #installOutput = ExecPowerShellScript $chocInstallPS1
     
     Write-verbose "[choco output]$installOutput"
 

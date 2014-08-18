@@ -11,7 +11,7 @@ Configuration myChocoConfig
       }
       cChocoInstaller installChoco
       {
-        Name = "OneKeyPropertyRequiredUnused"
+        InstallDir = "c:\choco"
       }
       cChocoPackageInstaller installGit
       {
