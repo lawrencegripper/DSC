@@ -2,148 +2,148 @@ $scriptLocationOfGitExe = $null
 
 function Get-TargetResource
 {
-    [CmdletBinding()]
-    [OutputType([System.Collections.Hashtable])]
-    param
-    (
-        [parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [System.String]
-        $Name,
+	[CmdletBinding()]
+	[OutputType([System.Collections.Hashtable])]
+	param
+	(
+		[parameter(Mandatory = $true)]
+		[ValidateNotNullOrEmpty()]
+		[System.String]
+		$Name,
 
-        [ValidateNotNullOrEmpty()]
-        [System.String]
-        $RepositoryLocal,
+		[ValidateNotNullOrEmpty()]
+		[System.String]
+		$RepositoryLocal,
 
-        [ValidateNotNullOrEmpty()]
-        [System.String]
-        $RepositoryRemote,
+		[ValidateNotNullOrEmpty()]
+		[System.String]
+		$RepositoryRemote,
 
 		[parameter(Mandatory=$false)]
-        [System.String]
-        $LocationOfGitExe
+		[System.String]
+		$LocationOfGitExe
 
-    )
+	)
 
 	$scriptLocationOfGitExe = $LocationOfGitExe
 
-    Write-Verbose "Start Get-TargetResource"
+	Write-Verbose "Start Get-TargetResource"
 
 
 	
 
-    #Needs to return a hashtable that returns the current
-    #status of the configuration component
-    $Configuration = @{
-        RepositoryRemote = $RepositoryRemote
-        RepositoryLocal = $RepositoryLocal
-        Name = $Name
-    }
+	#Needs to return a hashtable that returns the current
+	#status of the configuration component
+	$Configuration = @{
+		RepositoryRemote = $RepositoryRemote
+		RepositoryLocal = $RepositoryLocal
+		Name = $Name
+	}
 
-    if (-not (IsGitInstalled) -or -not (Test-Path $RepositoryLocal) -or -not (isLocalGitUpToDate $RepositoryLocal))
-    {
-        $Configuration.Ensure = 'Absent'
-        Return $Configuration
-    }
-    else
-    {
-        $Configuration.Ensure = 'Present'
-        Return $Configuration
+	if (-not (IsGitInstalled) -or -not (Test-Path $RepositoryLocal) -or -not (isLocalGitUpToDate $RepositoryLocal))
+	{
+		$Configuration.Ensure = 'Absent'
+		Return $Configuration
+	}
+	else
+	{
+		$Configuration.Ensure = 'Present'
+		Return $Configuration
 
-    }
+	}
 }
 
 function Set-TargetResource
 {
-    [CmdletBinding()]    
-    param
-    (
-        [parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [System.String]
-        $Name,
+	[CmdletBinding()]    
+	param
+	(
+		[parameter(Mandatory = $true)]
+		[ValidateNotNullOrEmpty()]
+		[System.String]
+		$Name,
 
-        [ValidateNotNullOrEmpty()]
-        [System.String]
-        $RepositoryLocal,
+		[ValidateNotNullOrEmpty()]
+		[System.String]
+		$RepositoryLocal,
 
-        [ValidateNotNullOrEmpty()]
-        [System.String]
-        $RepositoryRemote,
+		[ValidateNotNullOrEmpty()]
+		[System.String]
+		$RepositoryRemote,
 
 		[parameter(Mandatory=$false)]
-        [System.String]
-        $LocationOfGitExe
+		[System.String]
+		$LocationOfGitExe
 
-    )
+	)
 
 	$scriptLocationOfGitExe = $LocationOfGitExe
-    Write-Verbose "Start Set-TargetResource"
-    
-    if (-not (IsGitInstalled))
-    {
-        throw "Git isn't installed"
-    }
-    GitCreatePullUpdate $RepositoryRemote $RepositoryLocal
+	Write-Verbose "Start Set-TargetResource"
+	
+	if (-not (IsGitInstalled))
+	{
+		throw "Git isn't installed"
+	}
+	GitCreatePullUpdate $RepositoryRemote $RepositoryLocal
 }
 
 function Test-TargetResource
 {
-    [CmdletBinding()]
-    [OutputType([System.Boolean])]
-    param
-    (
-        [parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [System.String]
-        $Name,
+	[CmdletBinding()]
+	[OutputType([System.Boolean])]
+	param
+	(
+		[parameter(Mandatory = $true)]
+		[ValidateNotNullOrEmpty()]
+		[System.String]
+		$Name,
 
-        [ValidateNotNullOrEmpty()]
-        [System.String]
-        $RepositoryLocal,
+		[ValidateNotNullOrEmpty()]
+		[System.String]
+		$RepositoryLocal,
 
-        [ValidateNotNullOrEmpty()]
-        [System.String]
-        $RepositoryRemote,
+		[ValidateNotNullOrEmpty()]
+		[System.String]
+		$RepositoryRemote,
 
 		[parameter(Mandatory=$false)]
-        [System.String]
-        $LocationOfGitExe
+		[System.String]
+		$LocationOfGitExe
 
-    )
+	)
 
 	$scriptLocationOfGitExe = $LocationOfGitExe
 
-    Write-Verbose "Start Test-TargetResource"
+	Write-Verbose "Start Test-TargetResource"
 
-    if (-not (IsGitInstalled))
-    {
-        Return $false
-    }
+	if (-not (IsGitInstalled))
+	{
+		Return $false
+	}
 
-    if (-not (Test-Path $RepositoryLocal))
-    {
-        Return $false
-    }
+	if (-not (Test-Path $RepositoryLocal))
+	{
+		Return $false
+	}
 
-    if (-Not (IsAGitRepository $RepositoryLocal))
-    {
-        Return $false
-    }
+	if (-Not (IsAGitRepository $RepositoryLocal))
+	{
+		Return $false
+	}
 
-    if (-Not (IsLocalGitUpToDate $RepositoryLocal))
-    {
-        Return $false
-    }
+	if (-Not (IsLocalGitUpToDate $RepositoryLocal))
+	{
+		Return $false
+	}
 
-    Return $true
+	Return $true
 }
 
 function IsGitInstalled
 {
-    Write-Verbose "Start IsGitInstalled"
+	Write-Verbose "Start IsGitInstalled"
 
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
+	$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
 
 	if (DoesCommandExist git)
 	{
@@ -160,112 +160,112 @@ function IsGitInstalled
 	Write-Verbose "Git not found in enviroment path or gitExePath"
 	return $false
 
-    #Try
-    #{
-    #    Exec({git help})
-    #    return $true
-    #}
-    #Catch
-    #{
-    #    Write-Verbose "Git not installed"
-    #    return $false
-    #}
+	#Try
+	#{
+	#    Exec({git help})
+	#    return $true
+	#}
+	#Catch
+	#{
+	#    Write-Verbose "Git not installed"
+	#    return $false
+	#}
 }
 
 function DoesCommandExist
 {
-    Param ($command)
+	Param ($command)
 
-    $oldPreference = $ErrorActionPreference
-    $ErrorActionPreference = 'stop'
+	$oldPreference = $ErrorActionPreference
+	$ErrorActionPreference = 'stop'
 
-    try 
-    {
-        if(Get-Command $command)
-        {
-            return $true
-        }
-    }
-    Catch 
-    {
-        return $false
-    }
-    Finally {
-        $ErrorActionPreference=$oldPreference
-    }
+	try 
+	{
+		if(Get-Command $command)
+		{
+			return $true
+		}
+	}
+	Catch 
+	{
+		return $false
+	}
+	Finally {
+		$ErrorActionPreference=$oldPreference
+	}
 } 
 
 function GitCreatePullUpdate
 {
-    param(
-            [Parameter(Position=0,Mandatory=1)][string]$repoLocationRemote, 
-            [Parameter(Position=1,Mandatory=1)][string]$repoLocationLocal
-        ) 
+	param(
+			[Parameter(Position=0,Mandatory=1)][string]$repoLocationRemote, 
+			[Parameter(Position=1,Mandatory=1)][string]$repoLocationLocal
+		) 
 
-    Write-Verbose "Start GitCreatePullUpdate"
+	Write-Verbose "Start GitCreatePullUpdate"
 
-    $repoUrl = $repoLocationRemote
-    $repoLocal = $repoLocationLocal
-    if ((Test-Path $repoLocationLocal))
-    {
-        $directoryInfo = Get-ChildItem $repoLocationLocal | Measure-Object
+	$repoUrl = $repoLocationRemote
+	$repoLocal = $repoLocationLocal
+	if ((Test-Path $repoLocationLocal))
+	{
+		$directoryInfo = Get-ChildItem $repoLocationLocal | Measure-Object
 
-        if ($directoryInfo.Count -gt 0 -and -not (IsAGitRepository $RepositoryLocal))
-        {
-            throw "Directory must be empty for git to create repository"
-        }
-    }
-    else
-    {
-        New-Item -ItemType directory -Path $repoLocal
-    }
+		if ($directoryInfo.Count -gt 0 -and -not (IsAGitRepository $RepositoryLocal))
+		{
+			throw "Directory must be empty for git to create repository"
+		}
+	}
+	else
+	{
+		New-Item -ItemType directory -Path $repoLocal
+	}
 
-    Set-Location $repoLocal
-    
-    if (-not (IsAGitRepository $repoLocal))
-    {
-        Write-Verbose "Not a repo, initiating clone"
-        $cloneOutput = gitClone $repoUrl $repoLocal
-        Write-Verbose "$cloneOutput"
-    }
-    else
-    {
-        if (-Not (isLocalGitUpToDate($repoLocal)))
-        {
-            Write-Verbose "Not up to date, initiating pull"
-            $pullOutput = ExecGitCommand "pull"
-            Write-Verbose "$pullOutput"
-        }
-    }
+	Set-Location $repoLocal
+	
+	if (-not (IsAGitRepository $repoLocal))
+	{
+		Write-Verbose "Not a repo, initiating clone"
+		$cloneOutput = gitClone $repoUrl $repoLocal
+		Write-Verbose "$cloneOutput"
+	}
+	else
+	{
+		if (-Not (isLocalGitUpToDate($repoLocal)))
+		{
+			Write-Verbose "Not up to date, initiating pull"
+			$pullOutput = ExecGitCommand "pull"
+			Write-Verbose "$pullOutput"
+		}
+	}
 
 }
 
 function GitClone
 {
-    param(
-        [Parameter(Position=0,Mandatory=1)][string]$repoLocationRemote, 
-        [Parameter(Position=1,Mandatory=1)][string]$repoLocationLocal
-    ) 
+	param(
+		[Parameter(Position=0,Mandatory=1)][string]$repoLocationRemote, 
+		[Parameter(Position=1,Mandatory=1)][string]$repoLocationLocal
+	) 
 
-    Write-Verbose "Start Clone"
+	Write-Verbose "Start Clone"
 
-    $command = "clone "+ $repoLocationRemote +" "+ $repoLocationLocal + " -v" 
+	$command = "clone "+ $repoLocationRemote +" "+ $repoLocationLocal + " -v" 
 
-    $output = ExecGitCommand $command
-    
+	$output = ExecGitCommand $command
+	
 
-    Return $output
+	Return $output
 
 }
 
 function ExecGitCommand
 {
-    param(
-        [Parameter(Position=1,Mandatory=0)][string]$args
-    )
+	param(
+		[Parameter(Position=1,Mandatory=0)][string]$args
+	)
 
-    $location = Get-Location
-    Write-Verbose "Exec Git Command Prep Setting Current Location: $location"
+	$location = Get-Location
+	Write-Verbose "Exec Git Command Prep Setting Current Location: $location"
 
 	#default to git command from enviroment path
 	$gitCmd = "git"
@@ -282,77 +282,77 @@ function ExecGitCommand
 	}
 
 	#envoke git in new process to capture output
-    $psi = New-object System.Diagnostics.ProcessStartInfo 
-    $psi.CreateNoWindow = $true 
-    $psi.UseShellExecute = $false 
-    $psi.RedirectStandardOutput = $true 
-    $psi.RedirectStandardError = $true 
-    $psi.FileName = $gitCmd 
-    $psi.WorkingDirectory = $location.ToString()
-    $psi.Arguments = $args
-    $process = New-Object System.Diagnostics.Process 
-    $process.StartInfo = $psi
-    $process.Start() | Out-Null
-    $process.WaitForExit()
-    $output = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
+	$psi = New-object System.Diagnostics.ProcessStartInfo 
+	$psi.CreateNoWindow = $true 
+	$psi.UseShellExecute = $false 
+	$psi.RedirectStandardOutput = $true 
+	$psi.RedirectStandardError = $true 
+	$psi.FileName = $gitCmd 
+	$psi.WorkingDirectory = $location.ToString()
+	$psi.Arguments = $args
+	$process = New-Object System.Diagnostics.Process 
+	$process.StartInfo = $psi
+	$process.Start() | Out-Null
+	$process.WaitForExit()
+	$output = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
 
-    Write-Verbose "Exec Git Command: $args"
+	Write-Verbose "Exec Git Command: $args"
 
-    return $output
+	return $output
 }
 
 function IsAGitRepository
 {
-    param(
-        [Parameter(Position=0,Mandatory=1)][string]$repoLocation
-    ) 
+	param(
+		[Parameter(Position=0,Mandatory=1)][string]$repoLocation
+	) 
 
-    Write-Verbose "Start IsAGitRepository $repoLocation"
+	Write-Verbose "Start IsAGitRepository $repoLocation"
 
-    Set-Location $repoLocation
-    $output = ExecGitCommand "status"
-    if ($output.Contains("fatal"))
-    {
-        Write-Verbose "false $output"
-        Return $false
-    }
-    else
-    {
-        Write-Verbose "true $output"
+	Set-Location $repoLocation
+	$output = ExecGitCommand "status"
+	if ($output.Contains("fatal"))
+	{
+		Write-Verbose "false $output"
+		Return $false
+	}
+	else
+	{
+		Write-Verbose "true $output"
 
-        Return $true
-    }
+		Return $true
+	}
 
 }
 
 function IsLocalGitUpToDate
 {
-    param(
-        [Parameter(Position=0,Mandatory=1)][string]$repoLocation
-    ) 
-    Write-Verbose "Start IsLocalGitUpToDate $repoLK"
-    
-    Set-Location $repoLocation
+	param(
+		[Parameter(Position=0,Mandatory=1)][string]$repoLocation
+	) 
+	Write-Verbose "Start IsLocalGitUpToDate $repoLK"
+	
+	Set-Location $repoLocation
 
-    $update = ExecGitCommand "fetch origin"
+	$update = ExecGitCommand "fetch origin"
 
-    Write-Verbose "Fetch Origin $update"
+	Write-Verbose "Fetch Origin $update"
 
-    $local = ExecGitCommand "rev-parse HEAD"
-    $remote = ExecGitCommand "rev-parse origin/master"
+	$local = ExecGitCommand "rev-parse HEAD"
+	$remote = ExecGitCommand "rev-parse origin/master"
 
-    Write-Verbose "Local Commit vs Remote commit $local  $remote"
+	Write-Verbose "Local Commit vs Remote commit $local  $remote"
 
-    if ($local -eq $remote)
-    {
-        $resetOutput = ExecGitCommand "reset --hard Head"
-        Write-Verbose "Remote matches local: Reseting to head just to be sure files are unchanged $resetOutput"
-        return $true;
-    }
-    else
-    {
-        return $false
-    }
+	if ($local -eq $remote)
+	{
+		$resetOutput = ExecGitCommand "reset --hard Head"
+		Write-Verbose "Remote matches local: Reseting to head just to be sure files are unchanged $resetOutput"
+		return $true;
+	}
+	else
+	{
+		return $false
+	}
 }
 
 

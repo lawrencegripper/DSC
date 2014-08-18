@@ -240,52 +240,38 @@ function InstallChoco
     $toolsFolder = Join-Path $tempDir "tools"
     #$chocInstallPS1 = Join-Path $toolsFolder "chocolateyInstall.ps1"
     
-    $scriptBlock = {
-        param (
-            [string]$toolsPath,
-            [string]$installFolder
-        )
-        Write-verbose 'Choco Install SriptBlock Start'
-        Write-verbose 'tools folder:'
-        Write-verbose  $toolsPath
-        Write-verbose 'install folder:' 
-        Write-verbose  $installFolder
+    $toolsPath = $toolsFolder
+    $installFolder = $ChocoInstallDir
 
-        if ((Test-Path $installFolder))
-        {
-            Write-verbose 'install folder already exists at $installFolder'
-            
-        }
-        else
-        {
-            Write-verbose 'creating install folder at $installFolder'
-
-            New-Item -ItemType directory -Path $installFolder
-        }
-
-        Set-Location $toolsPath
-
-        #$toolsPath = (Split-Path -parent $MyInvocation.MyCommand.Definition)
-
-        # ensure module loading preference is on
-        $PSModuleAutoLoadingPreference = 'All';
-
-        $modules = Get-ChildItem $toolsPath -Filter *.psm1
-        $modules | ForEach-Object {
-                                                                $psm1File = $_.FullName;
-                                                                $moduleName = $([System.IO.Path]::GetFileNameWithoutExtension($psm1File))
-                                                                remove-module $moduleName -ErrorAction SilentlyContinue;
-                                                                import-module -name  $psm1File;
-                                                            }
-
-        Initialize-Chocolatey -chocolateyPath $installFolder
-
-        Write-verbose 'Choco Install SriptBlock End'
-
+    $scriptBlock =    "Write-verbose 'Choco Install SriptBlock Start'
+    Write-verbose 'tools folder:'
+    Write-verbose $toolsPath
+    Write-verbose 'install folder:' 
+    Write-verbose  $installFolder
+    if ((Test-Path  $installFolder))
+    {
+        Write-verbose 'install folder already exists at $installFolder'
     }
+    else
+    {
+        #Write-verbose 'creating install folder at $installFolder'
+        New-Item -ItemType directory -Path $installFolder
+    }
+    Set-Location $toolsPath
+    # ensure module loading preference is on
+    `$PSModuleAutoLoadingPreference = 'All'
+    `$modules = Get-ChildItem $toolsPath -Filter *.psm1
+    `$modules | ForEach-Object { `$psm1File = `$_.FullName;
+    `$moduleName = `$([System.IO.Path]::GetFileNameWithoutExtension(`$psm1File))
+    remove-module `$moduleName -ErrorAction SilentlyContinue;
+    import-module -name  `$psm1File;
+    }
+    Initialize-Chocolatey -chocolateyPath $installFolder
+    "
 
-    &$scriptBlock $toolsFolder $ChocoInstallDir
-    #installOutput = ExecPowerShellScript $chocInstallPS1
+
+    #&$scriptBlock $toolsFolder $ChocoInstallDir
+    $installOutput = ExecPowerShellScript $scriptBlock
     
     Write-verbose "[choco output]$installOutput"
 
